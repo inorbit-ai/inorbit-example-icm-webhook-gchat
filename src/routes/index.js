@@ -52,9 +52,9 @@ indexRouter.get('/', function(req = {}, res) {
  *
  * The most relevant fields received are the following:
  * - entity (id and name): most normally the robot associated with this incident
- * - message and description: a textual incident message and a more detailed description
+ * - message: a textual incident message and a more detailed description
  * - status: 'new' or 'resolved'
- * - severity: Indicates the severity of the message (SEV-0, SEV-1, SEV-2)
+ * - severity: Indicates the severity of the message (SEV 0, SEV 1, SEV 2, SEV 3)
  * - ts: The timestamp (in epoch) when the incident notification was triggered
  *
  * See https://www.inorbit.ai/docs#incident-mgmt-webhook-apis for more details
@@ -63,7 +63,7 @@ indexRouter.post('/', function(req = {}, res, next) {
 
   // Get incident details from InOrbit webhook message
   const { entity = {}, severity, details = {}, message, status = "", ts } = req.body;
-  const date = new Date(ts);
+  const date = new Date(ts).toUTCString();
 
   // Check InOrbit authorization header to confirm message authenticity
   const inorbitKey = req.get('x-inorbit-key');
