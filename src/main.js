@@ -29,7 +29,7 @@ const { setInorbitIcmKey } = require('./routes/index');
 /**
  * Configure the application from environment variables
  *
- * PORT: (optional, default 3000)
+ * PORT: (optional, default 3008)
  * WEBHOOK_URL: (required)
  */
 const port = normalizePort(process.env.PORT || '3008');
