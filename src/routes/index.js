@@ -21,11 +21,10 @@
  * Index
  * Contains the endpoints that receive the InOrbit notification
  */
-var express = require('express');
-const fetch = require('node-fetch');
-var { createGoogleChatCards } = require('../bots/googleChat');
+const express = require('express');
+const { createGoogleChatCards, sendMessage } = require('../bots/googleChat');
 
-var router = express.Router();
+const router = express.Router();
 
 /**
  * GET request
@@ -41,9 +40,13 @@ router.get('/', function(req = {}, res) {
  * Receives the in the request the incident details, then it does some light parsing generates
  * a Google ChatBot card that will then be passed to the ChatBot via post to the WEBHOOK_URL
  */
-router.post('/', function(req = {}, res) {
+router.post('/', function(req = {}, res, next) {
+
+  // Get incident details from InOrbit webhook message
   const { entity = {}, severity, details = {}, message, status = "", ts} = req.body;
-  var date = new Date(ts);
+  const date = new Date(ts);
+
+  // Format the incident notification for pretty display in Google Chat
   const cards = createGoogleChatCards({
     label: details.incidentLabel,
     name: entity.name,
@@ -53,14 +56,11 @@ router.post('/', function(req = {}, res) {
     message,
     status: status.toUpperCase()
   });
-  // Environment variable that contains the url of the webhook
-  fetch(process.env.WEBHOOK_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json; charset=UTF-8',
-    },
-    body: JSON.stringify({ cards })
-  });
+
+  // Submit the message to Google Chat
+  sendMessage(cards)
+    .then(() => res.sendStatus(200))
+    .catch(error => next(error));
 });
 
 module.exports = router;

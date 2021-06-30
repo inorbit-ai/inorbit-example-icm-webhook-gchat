@@ -18,10 +18,12 @@
  */
 
 /**
- * Google ChatBot
- * Creates a card with the InOrbit alert information on Google Chat
+ * Google ChatBot utilities
+ *
+ * Provides functions to create a card with the InOrbit alert information on Google Chat
  * https://developers.google.com/chat/concepts/bots
  */
+const fetch = require('node-fetch');
 
 /**
  * Severity colors used to better describe the incident severity
@@ -34,6 +36,19 @@ const severityColors = {
   'SEV 2': '#DA80F9',
   'SEV 3': '#F1CAFF'
 };
+
+/**
+ * Google Chat webhook URL with permissions to send messages
+ * It must be set prior to using submit functions
+ */
+let webhookUrl;
+
+/**
+ * Configures the Google Chat webhook URL
+ */
+const setWebhookUrl = (newWebhookUrl) => {
+  webhookUrl = newWebhookUrl;
+}
 
 /**
  * Creates and styles the google chat message card
@@ -86,4 +101,24 @@ const createGoogleChatCards = ({ severity, message, status, name, date, label, i
   }
 ];
 
-module.exports = { createGoogleChatCards };
+/**
+ * Sends the provided message to Google Chat.
+ * Messages must be formatted cards.
+ *
+ * Returns a promise to be resolved with the result
+ */
+const sendMessage = (cards) => {
+  if (!webhookUrl) {
+    console.warn('Webhook URL missing. Please call setWebhookUrl before calling sendMessages');
+    return;
+  }
+  return fetch(webhookUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: JSON.stringify({ cards })
+  });
+}
+
+module.exports = { createGoogleChatCards, sendMessage, setWebhookUrl };
