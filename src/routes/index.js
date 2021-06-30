@@ -37,8 +37,17 @@ router.get('/', function(req = {}, res) {
 /**
  * POST request that will receive the alert message to be passed to the chatbot
  *
- * Receives the in the request the incident details, then it does some light parsing generates
- * a Google ChatBot card that will then be passed to the ChatBot via post to the WEBHOOK_URL
+ * Receives the incident details in the request body, parses it and then sends a
+ * message to Google Chat as a formatted card.
+ *
+ * The most relevant fields received are the following:
+ * - entity (id and name): most normally the robot associated with this incident
+ * - message and description: a textual incident message and a more detailed description
+ * - status: 'new' or 'resolved'
+ * - severity: Indicates the severity of the message (SEV-0, SEV-1, SEV-2)
+ * - ts: The timestamp (in epoch) when the incident notification was triggered
+ *
+ * See https://www.inorbit.ai/docs#incident-mgmt-webhook-apis for more details
  */
 router.post('/', function(req = {}, res, next) {
 
