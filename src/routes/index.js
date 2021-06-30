@@ -24,13 +24,23 @@
 const express = require('express');
 const { createGoogleChatCards, sendMessage } = require('../bots/googleChat');
 
-const router = express.Router();
+const indexRouter = express.Router();
+
+/**
+ * Value and setter for X-InOrbot-Key for this account.
+ * It must be set before the service can receive and authenticate
+ * InOrbit Incident Management Webhook calls.
+ */
+let inorbitIcmKey;
+function setInorbitIcmKey(newKey) {
+  inorbitIcmKey = newKey;
+}
 
 /**
  * GET request
  * Renders project description
  */
-router.get('/', function(req = {}, res) {
+indexRouter.get('/', function(req = {}, res) {
   res.render('index.html')
 });
 
@@ -49,11 +59,18 @@ router.get('/', function(req = {}, res) {
  *
  * See https://www.inorbit.ai/docs#incident-mgmt-webhook-apis for more details
  */
-router.post('/', function(req = {}, res, next) {
+indexRouter.post('/', function(req = {}, res, next) {
 
   // Get incident details from InOrbit webhook message
-  const { entity = {}, severity, details = {}, message, status = "", ts} = req.body;
+  const { entity = {}, severity, details = {}, message, status = "", ts } = req.body;
   const date = new Date(ts);
+
+  // Check InOrbit authorization header to confirm message authenticity
+  const inorbitKey = req.get('x-inorbit-key');
+  if (!inorbitKey || inorbitKey != inorbitIcmKey) {
+    next('Invalid or missing X-InOrbit-Key header');
+    return;
+  }
 
   // Format the incident notification for pretty display in Google Chat
   const cards = createGoogleChatCards({
@@ -72,4 +89,4 @@ router.post('/', function(req = {}, res, next) {
     .catch(error => next(error));
 });
 
-module.exports = router;
+module.exports = { indexRouter, setInorbitIcmKey };

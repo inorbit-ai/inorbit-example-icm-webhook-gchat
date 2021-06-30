@@ -24,6 +24,7 @@
 const http = require('http');
 const app = require('./app');
 const { setWebhookUrl } = require('./bots/googleChat');
+const { setInorbitIcmKey } = require('./routes/index');
 
 /**
  * Configure the application from environment variables
@@ -34,6 +35,7 @@ const { setWebhookUrl } = require('./bots/googleChat');
 const port = normalizePort(process.env.PORT || '3008');
 app.set('port', port);
 setWebhookUrl(process.env.WEBHOOK_URL);
+setInorbitIcmKey(process.env.INORBIT_ICM_KEY);
 
 /**
  * Create HTTP server.

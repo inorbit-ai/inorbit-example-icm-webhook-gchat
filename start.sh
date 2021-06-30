@@ -19,6 +19,11 @@
 if  [[ -z "${WEBHOOK_URL}" ]]; then
   echo "You must provide the WEBHOOK_URL environment variable"
   exit
-else
-  docker run -e "WEBHOOK_URL=${WEBHOOK_URL}" -d -p 3008:3008 incident-mgmt-gchat
 fi
+
+if  [[ -z "${INORBIT_ICM_KEY}" ]]; then
+  echo "You must provide the INORBIT_ICM_KEY environment variable"
+  exit
+fi
+
+docker run -e WEBHOOK_URL -e INORBIT_ICM_KEY -p 3008:3008 incident-mgmt-gchat
