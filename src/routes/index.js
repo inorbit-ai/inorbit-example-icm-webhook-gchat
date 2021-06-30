@@ -21,29 +21,58 @@
  * Index
  * Contains the endpoints that receive the InOrbit notification
  */
-var express = require('express');
-const fetch = require('node-fetch');
-var { createGoogleChatCards } = require('../bots/googleChat');
+const express = require('express');
+const { createGoogleChatCards, sendMessage } = require('../bots/googleChat');
 
-var router = express.Router();
+const indexRouter = express.Router();
+
+/**
+ * Value and setter for X-InOrbot-Key for this account.
+ * It must be set before the service can receive and authenticate
+ * InOrbit Incident Management Webhook calls.
+ */
+let inorbitIcmKey;
+function setInorbitIcmKey(newKey) {
+  inorbitIcmKey = newKey;
+}
 
 /**
  * GET request
  * Renders project description
  */
-router.get('/', function(req = {}, res) {
+indexRouter.get('/', function(req = {}, res) {
   res.render('index.html')
 });
 
 /**
  * POST request that will receive the alert message to be passed to the chatbot
  *
- * Receives the in the request the incident details, then it does some light parsing generates
- * a Google ChatBot card that will then be passed to the ChatBot via post to the WEBHOOK_URL
+ * Receives the incident details in the request body, parses it and then sends a
+ * message to Google Chat as a formatted card.
+ *
+ * The most relevant fields received are the following:
+ * - entity (id and name): most normally the robot associated with this incident
+ * - message and description: a textual incident message and a more detailed description
+ * - status: 'new' or 'resolved'
+ * - severity: Indicates the severity of the message (SEV-0, SEV-1, SEV-2)
+ * - ts: The timestamp (in epoch) when the incident notification was triggered
+ *
+ * See https://www.inorbit.ai/docs#incident-mgmt-webhook-apis for more details
  */
-router.post('/', function(req = {}, res) {
-  const { entity = {}, severity, details = {}, message, status = "", ts} = req.body;
-  var date = new Date(ts);
+indexRouter.post('/', function(req = {}, res, next) {
+
+  // Get incident details from InOrbit webhook message
+  const { entity = {}, severity, details = {}, message, status = "", ts } = req.body;
+  const date = new Date(ts);
+
+  // Check InOrbit authorization header to confirm message authenticity
+  const inorbitKey = req.get('x-inorbit-key');
+  if (!inorbitKey || inorbitKey != inorbitIcmKey) {
+    next('Invalid or missing X-InOrbit-Key header');
+    return;
+  }
+
+  // Format the incident notification for pretty display in Google Chat
   const cards = createGoogleChatCards({
     label: details.incidentLabel,
     name: entity.name,
@@ -53,14 +82,11 @@ router.post('/', function(req = {}, res) {
     message,
     status: status.toUpperCase()
   });
-  // Environment variable that contains the url of the webhook
-  fetch(process.env.WEBHOOK_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json; charset=UTF-8',
-    },
-    body: JSON.stringify({ cards })
-  });
+
+  // Submit the message to Google Chat
+  sendMessage(cards)
+    .then(() => res.sendStatus(200))
+    .catch(error => next(error));
 });
 
-module.exports = router;
+module.exports = { indexRouter, setInorbitIcmKey };

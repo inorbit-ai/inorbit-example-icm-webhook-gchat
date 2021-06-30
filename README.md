@@ -27,6 +27,10 @@ This URL must be provided as the WEBHOOK_URL environment variable to the running
 On InOrbit control, you go to Settings > Admin > Integrations and enable Webhook.
 You must provide the HTTPS (recommended) or HTTP endpoint name where this service is being deployed.
 
+In addition, take note of the API Key value for your account. This value
+must be passed as an INORBIT_ICM_KEY environment variable to the
+service.
+
 ## Running
 
 A `start.sh` script is provided in this directory as a convenience example for running the container.

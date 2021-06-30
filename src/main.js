@@ -21,19 +21,26 @@
  * Main application entry point.
  * Reads environment variables and sets up the basics of the Express framework.
  */
-var app = require('./app');
-var http = require('http');
+const http = require('http');
+const app = require('./app');
+const { setWebhookUrl } = require('./bots/googleChat');
+const { setInorbitIcmKey } = require('./routes/index');
 
 /**
- * Get port from environment and store in Express.
+ * Configure the application from environment variables
+ *
+ * PORT: (optional, default 3000)
+ * WEBHOOK_URL: (required)
  */
-var port = normalizePort(process.env.PORT || '3008');
+const port = normalizePort(process.env.PORT || '3008');
 app.set('port', port);
+setWebhookUrl(process.env.WEBHOOK_URL);
+setInorbitIcmKey(process.env.INORBIT_ICM_KEY);
 
 /**
  * Create HTTP server.
  */
-var server = http.createServer(app);
+const server = http.createServer(app);
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -45,7 +52,7 @@ server.on('error', onError);
  * Normalize a port into a number, string, or false.
  */
 function normalizePort(val) {
-  var port = parseInt(val, 10);
+  const port = parseInt(val, 10);
 
   if (isNaN(port)) {
     // named pipe
@@ -69,7 +76,7 @@ function onError(error) {
     throw error;
   }
 
-  var bind = typeof port === 'string'
+  const bind = typeof port === 'string'
     ? 'Pipe ' + port
     : 'Port ' + port;
 
