@@ -64,7 +64,7 @@ indexRouter.post('/', function(req = {}, res, next) {
 
   // Get incident details from InOrbit webhook message
   const { entity = {}, severity, details = {}, message, status = "", ts, actions } = req.body;
-  const date = new Date(ts);
+  const date = new Date(ts).toUTCString();
 
   // Check InOrbit authorization header to confirm message authenticity
   const inorbitKey = req.get('x-inorbit-key');
