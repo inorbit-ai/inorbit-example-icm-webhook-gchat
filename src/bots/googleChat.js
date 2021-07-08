@@ -51,36 +51,12 @@ const setWebhookUrl = (newWebhookUrl) => {
 }
 
 /**
- * Action button base url to redirect when an incident has actions that redirect to inOrbit
- */
-let inorbitBaseUrl;
-function setInorbitBaseUrl(baseUrl) {
-  inorbitBaseUrl = baseUrl;
-}
-
-/**
  * Creates and styles the google chat message card
  * Returns the card with detail of the alert received in params
  * https://developers.google.com/chat/reference/message-formats/cards
  */
-const createGoogleChatCards = ({ severity, message, status, name, date, label, id, actions }) => {
-  // Parse actions into text buttons actions
-  // For more detail on actions see https://www.inorbit.ai/docs#configure-actions
-  let buttons = [];
-  if (Array.isArray(actions)) {
-    buttons = actions.map(action => ({
-      textButton: {
-        text: action.label || "Action",
-        onClick: {
-          openLink: {
-            url: `${inorbitBaseUrl}${(action.args && action.args.path) || "/"}`
-          }
-        }
-      }
-    }));
-  }
-
-  return [{
+const createGoogleChatCards = ({ severity, message, status, name, date, label, id, actionButtons }) => ([
+  {
     header: {
       title: `${status} alert from InOrbit</b>`,
       subtitle: `Robot name: ${name}`
@@ -120,13 +96,13 @@ const createGoogleChatCards = ({ severity, message, status, name, date, label, i
             }
           },
           {
-            buttons
+            buttons: actionButtons
           }
         ]
       }
     ]
-  }];
-}
+  }
+]);
 
 /**
  * Sends the provided message to Google Chat.
@@ -148,4 +124,4 @@ const sendMessage = (cards) => {
   });
 }
 
-module.exports = { createGoogleChatCards, sendMessage, setWebhookUrl, setInorbitBaseUrl };
+module.exports = { createGoogleChatCards, sendMessage, setWebhookUrl };

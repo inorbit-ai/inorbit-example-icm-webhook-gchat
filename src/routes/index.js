@@ -37,6 +37,14 @@ function setInorbitIcmKey(newKey) {
 }
 
 /**
+ * Action button base url to redirect when an incident has actions that redirect to inOrbit
+ */
+let inorbitBaseUrl;
+function setInorbitBaseUrl(baseUrl) {
+  inorbitBaseUrl = baseUrl;
+}
+
+/**
  * GET request
  * Renders project description
  */
@@ -73,6 +81,22 @@ indexRouter.post('/', function(req = {}, res, next) {
     return;
   }
 
+  // Parse actions into text buttons actions
+  // For more detail on actions see https://www.inorbit.ai/docs#configure-actions
+  let actionButtons = [];
+  if (Array.isArray(actions)) {
+    actionButtons = actions.map(action => ({
+      textButton: {
+        text: action.label || "Action",
+        onClick: {
+          openLink: {
+            url: `${inorbitBaseUrl}${(action.args && action.args.path) || "/"}`
+          }
+        }
+      }
+    }));
+  }
+
   // Format the incident notification for pretty display in Google Chat
   const cards = createGoogleChatCards({
     label: details.incidentLabel,
@@ -82,7 +106,7 @@ indexRouter.post('/', function(req = {}, res, next) {
     date,
     message,
     status: status.toUpperCase(),
-    actions
+    actionButtons
   });
 
   // Submit the message to Google Chat
@@ -91,4 +115,4 @@ indexRouter.post('/', function(req = {}, res, next) {
     .catch(error => next(error));
 });
 
-module.exports = { indexRouter, setInorbitIcmKey };
+module.exports = { indexRouter, setInorbitIcmKey, setInorbitBaseUrl };

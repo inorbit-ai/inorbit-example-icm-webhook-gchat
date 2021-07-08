@@ -23,8 +23,8 @@
  */
 const http = require('http');
 const app = require('./app');
-const { setWebhookUrl, setInorbitBaseUrl } = require('./bots/googleChat');
-const { setInorbitIcmKey } = require('./routes/index');
+const { setWebhookUrl } = require('./bots/googleChat');
+const { setInorbitIcmKey, setInorbitBaseUrl } = require('./routes/index');
 
 /**
  * Configure the application from environment variables
