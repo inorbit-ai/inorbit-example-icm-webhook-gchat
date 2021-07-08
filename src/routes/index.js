@@ -56,14 +56,15 @@ indexRouter.get('/', function(req = {}, res) {
  * - status: 'new' or 'resolved'
  * - severity: Indicates the severity of the message (SEV 0, SEV 1, SEV 2, SEV 3)
  * - ts: The timestamp (in epoch) when the incident notification was triggered
+ * - actions: array of inOrbit actions (https://www.inorbit.ai/docs#configure-actions)
  *
  * See https://www.inorbit.ai/docs#incident-mgmt-webhook-apis for more details
  */
 indexRouter.post('/', function(req = {}, res, next) {
 
   // Get incident details from InOrbit webhook message
-  const { entity = {}, severity, details = {}, message, status = "", ts } = req.body;
-  const date = new Date(ts).toUTCString();
+  const { entity = {}, severity, details = {}, message, status = "", ts, actions } = req.body;
+  const date = new Date(ts);
 
   // Check InOrbit authorization header to confirm message authenticity
   const inorbitKey = req.get('x-inorbit-key');
@@ -80,7 +81,8 @@ indexRouter.post('/', function(req = {}, res, next) {
     severity,
     date,
     message,
-    status: status.toUpperCase()
+    status: status.toUpperCase(),
+    actions
   });
 
   // Submit the message to Google Chat

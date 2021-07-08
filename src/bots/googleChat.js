@@ -51,55 +51,82 @@ const setWebhookUrl = (newWebhookUrl) => {
 }
 
 /**
+ * Action button base url to redirect when an incident has actions that redirect to inOrbit
+ */
+let inorbitBaseUrl;
+function setInorbitBaseUrl(baseUrl) {
+  inorbitBaseUrl = baseUrl;
+}
+
+/**
  * Creates and styles the google chat message card
  * Returns the card with detail of the alert received in params
  * https://developers.google.com/chat/reference/message-formats/cards
  */
-const createGoogleChatCards = ({ severity, message, status, name, date, label, id }) => [
-  {
-    "header": {
-      "title": `${status} alert from InOrbit</b>`,
-      "subtitle": `Robot name: ${name}`
+const createGoogleChatCards = ({ severity, message, status, name, date, label, id, actions }) => {
+  // Parse actions into text buttons actions
+  // For more detail on actions see https://www.inorbit.ai/docs#configure-actions
+  let buttons = [];
+  if (Array.isArray(actions)) {
+    buttons = actions.map(action => ({
+      textButton: {
+        text: action.label || "Action",
+        onClick: {
+          openLink: {
+            url: `${inorbitBaseUrl}${(action.args && action.args.path) || "/"}`
+          }
+        }
+      }
+    }));
+  }
+
+  return [{
+    header: {
+      title: `${status} alert from InOrbit</b>`,
+      subtitle: `Robot name: ${name}`
     },
-    "sections": [
+    sections: [
       {
-        "widgets": [
+        widgets: [
           {
-            "keyValue": {
-              "topLabel": `Severity`,
-              "content": `<b><font color=\"${severityColors[severity]}\">${severity}</b>`
+            keyValue: {
+              topLabel: `Severity`,
+              content: `<b><font color=\"${severityColors[severity]}\">${severity}</b>`
             }
           },
           {
-            "keyValue": {
-              "topLabel": "Trigger label",
-              "content": label || '--'
+            keyValue: {
+              topLabel: "Trigger label",
+              content: label || '--'
             }
           },
           {
-            "keyValue": {
-              "topLabel": "Generated on",
-              "content": date || '--'
+            keyValue: {
+              topLabel: "Generated on",
+              content: date || '--'
             }
           },
           {
-            "keyValue": {
-              "topLabel": "Message",
-              "content": message || '--',
-              "contentMultiline": true
+            keyValue: {
+              topLabel: "Message",
+              content: message || '--',
+              contentMultiline: true
             }
           },
           {
-            "keyValue": {
-              "topLabel": "Robot id",
-              "content": id || '--'
+            keyValue: {
+              topLabel: "Robot id",
+              content: id || '--'
             }
+          },
+          {
+            buttons
           }
         ]
       }
     ]
-  }
-];
+  }];
+}
 
 /**
  * Sends the provided message to Google Chat.
@@ -121,4 +148,4 @@ const sendMessage = (cards) => {
   });
 }
 
-module.exports = { createGoogleChatCards, sendMessage, setWebhookUrl };
+module.exports = { createGoogleChatCards, sendMessage, setWebhookUrl, setInorbitBaseUrl };

@@ -31,6 +31,9 @@ In addition, take note of the API Key value for your account. This value
 must be passed as an INORBIT_ICM_KEY environment variable to the
 service.
 
+Add INORBIT_BASE_URL environment variable with InOrbit base url. If you don't set up this variable
+it will use https://control.inorbit.ai as default.
+
 ## Running
 
 A `start.sh` script is provided in this directory as a convenience example for running the container.

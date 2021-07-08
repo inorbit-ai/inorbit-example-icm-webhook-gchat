@@ -26,4 +26,4 @@ if  [[ -z "${INORBIT_ICM_KEY}" ]]; then
   exit
 fi
 
-docker run -e WEBHOOK_URL -e INORBIT_ICM_KEY -p 3008:3008 incident-mgmt-gchat
+docker run -e WEBHOOK_URL -e INORBIT_ICM_KEY -e INORBIT_BASE_URL -p 3008:3008 incident-mgmt-gchat
