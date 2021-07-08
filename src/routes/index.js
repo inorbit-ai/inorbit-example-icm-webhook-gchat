@@ -37,6 +37,14 @@ function setInorbitIcmKey(newKey) {
 }
 
 /**
+ * Action button base url to redirect when an incident has actions that redirect to inOrbit
+ */
+let inorbitBaseUrl;
+function setInorbitBaseUrl(baseUrl) {
+  inorbitBaseUrl = baseUrl;
+}
+
+/**
  * GET request
  * Renders project description
  */
@@ -56,13 +64,14 @@ indexRouter.get('/', function(req = {}, res) {
  * - status: 'new' or 'resolved'
  * - severity: Indicates the severity of the message (SEV 0, SEV 1, SEV 2, SEV 3)
  * - ts: The timestamp (in epoch) when the incident notification was triggered
+ * - actions: array of inOrbit actions (https://www.inorbit.ai/docs#configure-actions)
  *
  * See https://www.inorbit.ai/docs#incident-mgmt-webhook-apis for more details
  */
 indexRouter.post('/', function(req = {}, res, next) {
 
   // Get incident details from InOrbit webhook message
-  const { entity = {}, severity, details = {}, message, status = "", ts } = req.body;
+  const { entity = {}, severity, details = {}, message, status = "", ts, actions } = req.body;
   const date = new Date(ts).toUTCString();
 
   // Check InOrbit authorization header to confirm message authenticity
@@ -70,6 +79,22 @@ indexRouter.post('/', function(req = {}, res, next) {
   if (!inorbitKey || inorbitKey != inorbitIcmKey) {
     next('Invalid or missing X-InOrbit-Key header');
     return;
+  }
+
+  // Parse actions into text buttons actions
+  // For more detail on actions see https://www.inorbit.ai/docs#configure-actions
+  let actionButtons = [];
+  if (Array.isArray(actions)) {
+    actionButtons = actions.map(action => ({
+      textButton: {
+        text: action.label || "Action",
+        onClick: {
+          openLink: {
+            url: `${inorbitBaseUrl}${(action.args && action.args.path) || "/"}`
+          }
+        }
+      }
+    }));
   }
 
   // Format the incident notification for pretty display in Google Chat
@@ -80,7 +105,8 @@ indexRouter.post('/', function(req = {}, res, next) {
     severity,
     date,
     message,
-    status: status.toUpperCase()
+    status: status.toUpperCase(),
+    actionButtons
   });
 
   // Submit the message to Google Chat
@@ -89,4 +115,4 @@ indexRouter.post('/', function(req = {}, res, next) {
     .catch(error => next(error));
 });
 
-module.exports = { indexRouter, setInorbitIcmKey };
+module.exports = { indexRouter, setInorbitIcmKey, setInorbitBaseUrl };

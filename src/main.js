@@ -24,18 +24,21 @@
 const http = require('http');
 const app = require('./app');
 const { setWebhookUrl } = require('./bots/googleChat');
-const { setInorbitIcmKey } = require('./routes/index');
+const { setInorbitIcmKey, setInorbitBaseUrl } = require('./routes/index');
 
 /**
  * Configure the application from environment variables
  *
  * PORT: (optional, default 3008)
  * WEBHOOK_URL: (required)
+ * INORBIT_ICM_KEY: (required)
+ * INORBIT_BASE_URL: (optional, default 'https://control.inorbit.ai')
  */
 const port = normalizePort(process.env.PORT || '3008');
 app.set('port', port);
 setWebhookUrl(process.env.WEBHOOK_URL);
 setInorbitIcmKey(process.env.INORBIT_ICM_KEY);
+setInorbitBaseUrl(process.env.INORBIT_BASE_URL || 'https://control.inorbit.ai');
 
 /**
  * Create HTTP server.
